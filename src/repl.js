@@ -181,7 +181,15 @@ Prototype REPL - https://github.com/nodejs/repl`,
           generatePreview: true,
         })).result
           .filter(({ symbol }) => !symbol)
-          .sort((a, b) => (a.isOwn === b.isOwn ? 1 : -1))
+          .sort((a, b) => {
+            if (a.isOwn === b.isOwn) {
+              return 0;
+            }
+            if (a.isOwn) {
+              return -1;
+            }
+            return 1;
+          })
           .map(({ name }) => name);
 
         if (computed) {
