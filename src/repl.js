@@ -112,7 +112,8 @@ Prototype REPL - https://github.com/nodejs/repl`,
     const evaluateResult = await this.eval(line, awaited);
 
     if (evaluateResult.exceptionDetails) {
-      if (isRecoverableError(line)) {
+      const expression = wrapObjectLiteralExpressionIfNeeded(line);
+      if (isRecoverableError(expression)) {
         return IO.kNeedsAnotherLine;
       }
 
@@ -176,21 +177,23 @@ Prototype REPL - https://github.com/nodejs/repl`,
           return undefined;
         }
 
-        const k = (await Runtime.getProperties({
+        const own = [];
+        const inherited = [];
+
+        (await Runtime.getProperties({
           objectId: evaluateResult.result.objectId,
           generatePreview: true,
-        })).result
+        }))
+          .result
           .filter(({ symbol }) => !symbol)
-          .sort((a, b) => {
-            if (a.isOwn === b.isOwn) {
-              return 0;
+          .forEach(({ isOwn, name }) => {
+            if (isOwn) {
+              own.push(name);
+            } else {
+              inherited.push(name);
             }
-            if (a.isOwn) {
-              return -1;
-            }
-            return 1;
-          })
-          .map(({ name }) => name);
+          });
+        const k = [...own, ...inherited];
 
         if (computed) {
           keys = k.map((key) => {
