@@ -1,6 +1,7 @@
 'use strict';
 
 const { emitKeys, CSI, cursorTo } = require('./tty');
+const FormatterWorker = require('./autocomplete')
 
 /* eslint-disable no-await-in-loop */
 
@@ -132,6 +133,9 @@ class IO {
                   this.pause();
                   this.stdout.write('\n');
                   const b = this.buffer;
+                  const expr = FormatterWorker.findLastExpression(b);
+                  if (expr)
+                      console.log(expr.baseExpression)
                   this.buffer = '';
                   this.cursor = 0;
                   this.history.unshift(b);
